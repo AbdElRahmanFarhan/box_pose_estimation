@@ -2,22 +2,26 @@ import cv2
 import open3d as o3d
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
+data_folder = "/home/data"
 
-color_np = np.load("../data/original/one-box.color.npdata.npy")
-depth_np = np.load("../data/original/one-box.depth.npdata.npy")
+color_np = np.load(os.path.join(data_folder, "original/one-box.color.npdata.npy"))
+depth_np = np.load(os.path.join(data_folder, "original/one-box.depth.npdata.npy"))
 
 color_np = np.uint8(color_np)
 depth_np = np.float32(depth_np)
-cv2.imwrite("../data/test/color.png", color_np)
-plt.imsave("../data/test/depth.png", depth_np, vmax=3.0, vmin=0, cmap='grey')
+
+
+cv2.imwrite(os.path.join(data_folder, "test/color.png"), color_np)
+plt.imsave(os.path.join(data_folder, "test/depth.png"), depth_np, vmax=3.0, vmin=0, cmap='grey')
 
 h = depth_np.shape[0]
 w = depth_np.shape[1]
 
-intrinsic_mat = np.load("../data/original/intrinsics.npy").astype(np.float32)
+intrinsic_mat = np.load(os.path.join(data_folder, "original/intrinsics.npy")).astype(np.float32)
 print(intrinsic_mat)
-extrinsic_mat = np.load("../data/original/extrinsics.npy").astype(np.float32)
+extrinsic_mat = np.load(os.path.join(data_folder, "original/intrinsics.npy")).astype(np.float32)
 print(extrinsic_mat)
 
 
@@ -31,4 +35,4 @@ intrisic_o3d = o3d.camera.PinholeCameraIntrinsic(width=w, height=h, intrinsic_ma
 
 pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_o3d, intrisic_o3d, extrinsic_mat)
 
-o3d.io.write_point_cloud("../data/test/pointcloud.pcd", pcd)
+o3d.io.write_point_cloud(os.path.join(data_folder, "test/pointcloud.pcd"), pcd)
