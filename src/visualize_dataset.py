@@ -19,13 +19,11 @@ plt.imsave(os.path.join(data_folder, "test/depth.png"), depth_np, vmax=3.0, vmin
 h = depth_np.shape[0]
 w = depth_np.shape[1]
 
-intrinsic_mat = np.load(os.path.join(data_folder, "original/intrinsics.npy")).astype(np.float32)
-print(intrinsic_mat)
-extrinsic_mat = np.load(os.path.join(data_folder, "original/intrinsics.npy")).astype(np.float32)
-print(extrinsic_mat)
+intrinsic_mat = np.load(os.path.join(data_folder, "original/intrinsics.npy"))
+extrinsic_mat = np.load(os.path.join(data_folder, "original/extrinsics.npy"))
 
-
-color_o3d = o3d.geometry.Image(np.repeat(color_np[:, :, np.newaxis], 3, axis=2))
+color_full = np.repeat(color_np[:, :, np.newaxis], 3, axis=2)
+color_o3d = o3d.geometry.Image(color_full)
 
 depth_o3d = o3d.geometry.Image(depth_np*1000)
 
