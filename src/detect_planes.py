@@ -24,7 +24,10 @@ w = depth_np.shape[1]
 
 intrinsic_mat = np.load(os.path.join(data_folder, "original/intrinsics.npy"))
 extrinsic_mat = np.load(os.path.join(data_folder, "original/extrinsics.npy"))
+extrinsic_mat[:3, 3] *= 1e-3
+
 print(extrinsic_mat)
+print(intrinsic_mat)
 
 color_full = np.repeat(color_np[:, :, np.newaxis], 3, axis=2)
 color_o3d = o3d.geometry.Image(color_full)
@@ -38,7 +41,8 @@ intrisic_o3d = o3d.camera.PinholeCameraIntrinsic(width=w, height=h, intrinsic_ma
 pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_o3d, intrisic_o3d, extrinsic_mat)
 pcd.estimate_normals()
 # o3d.io.write_point_cloud(os.path.join(data_folder, "test/pointcloud.pcd"), pcd)
-print(np.max(np.array(pcd.points)))
+print(np.max(np.array(pcd.points)[:, -1]))
+print(np.min(np.array(pcd.points)[:, -1]))
 print(len(pcd.points))
 
 oboxes = pcd.detect_planar_patches(
@@ -69,8 +73,10 @@ horizontal_planes = []
 horizontal_planes = []
 
 for obox in oboxes:
-    T = obox.R @ np.linalg.inv(floor.R)
+    T = np.linalg.inv(floor.R) @ obox.R
     print(T[:, 2])
     if 1 - np.abs(np.dot(T[:, 2], np.array([0., 0., 1.]))) <= 1e-1:
         mesh += o3d.geometry.TriangleMesh.create_from_oriented_bounding_box(obox)
-# o3d.io.write_triangle_mesh(os.path.join(data_folder, "test/all.ply"), mesh)
+
+
+o3d.io.write_triangle_mesh(os.path.join(data_folder, "test/all.ply"), mesh)
