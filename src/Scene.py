@@ -45,6 +45,17 @@ class Scene:
         dist = np.dot(diff, normal)
         return dist
 
+    def calculate_box(self, box_surface: o3d.geometry.OrientedBoundingBox, floor: o3d.geometry.OrientedBoundingBox) -> o3d.geometry.OrientedBoundingBox:
+        box_extent = np.zeros((3,))
+        box_extent[:-1] = box_surface.extent[:-1]
+        box_extent[-1] = box_surface.center[-1] - floor.center[-1] - box_surface.extent[-1]/2. - floor.extent[-1]/2. - self.scene_meta.pallet_height
+        box_center = np.zeros((3,))
+        box_center[:-1] = box_surface.center[:-1]
+        box_center[-1] = box_surface.center[-1] - box_surface.extent[-1]/2. - box_extent[-1]/2.
+        box = o3d.geometry.OrientedBoundingBox(center=box_center, R=box_surface.R, extent=box_extent)
+        return box
+
+
     def get_box(self, pcd: o3d.geometry.PointCloud) -> o3d.geometry.OrientedBoundingBox:
         planes = self.detect_planes(pcd)
         floor = self.get_floor(pcd)
@@ -52,8 +63,10 @@ class Scene:
         dist = [self.get_dist_between_planes(floor, plane) for plane in horizontal_planes]
         box_idx = np.argmax(dist)
         box_surface = horizontal_planes[box_idx]
+        box = self.calculate_box(box_surface, floor)
+        return box
+
         
-        return box_surface
 
 
 
