@@ -1,7 +1,7 @@
 import numpy as np
 import open3d as o3d
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 from copy import deepcopy
 
 @dataclass
@@ -42,29 +42,33 @@ class Scene:
     def get_dist_between_planes(self, ref: o3d.geometry.OrientedBoundingBox, var: o3d.geometry.OrientedBoundingBox) -> float:
         diff = var.center - ref.center
         normal = ref.R[:, 2]
-        dist = np.dot(diff, normal)
+        dist = np.dot(diff, normal) - ref.extent[-1]/2. - var.extent[-1]/2. 
         return dist
 
-    def calculate_box(self, box_surface: o3d.geometry.OrientedBoundingBox, floor: o3d.geometry.OrientedBoundingBox) -> o3d.geometry.OrientedBoundingBox:
+    def calculate_box(self, box_surface: o3d.geometry.OrientedBoundingBox, dist: float) -> o3d.geometry.OrientedBoundingBox:
+        dist -= self.scene_meta.pallet_height
         box_extent = np.zeros((3,))
         box_extent[:-1] = box_surface.extent[:-1]
-        box_extent[-1] = box_surface.center[-1] - floor.center[-1] - box_surface.extent[-1]/2. - floor.extent[-1]/2. - self.scene_meta.pallet_height
+        box_extent[-1] = dist
+        # define the box center relative to the surface center
         box_center = np.zeros((3,))
-        box_center[:-1] = box_surface.center[:-1]
-        box_center[-1] = box_surface.center[-1] - box_surface.extent[-1]/2. - box_extent[-1]/2.
-        box = o3d.geometry.OrientedBoundingBox(center=box_center, R=box_surface.R, extent=box_extent)
+        box_center[-1] = -dist/2.
+        # Transform the center
+        box_center = box_surface.R @ box_center + box_surface.center
+        box = o3d.geometry.OrientedBoundingBox(center=box_center, R=box_surface.R, extent=box_extent)        
         return box
 
 
-    def get_box(self, pcd: o3d.geometry.PointCloud) -> o3d.geometry.OrientedBoundingBox:
+    def get_box(self, pcd: o3d.geometry.PointCloud) -> Tuple[o3d.geometry.OrientedBoundingBox, o3d.geometry.OrientedBoundingBox]:
         planes = self.detect_planes(pcd)
         floor = self.get_floor(pcd)
         horizontal_planes = [deepcopy(plane) for plane in planes if self.is_parallel(floor, plane)]
-        dist = [self.get_dist_between_planes(floor, plane) for plane in horizontal_planes]
-        box_idx = np.argmax(dist)
+        dists = [self.get_dist_between_planes(floor, plane) for plane in horizontal_planes]
+        box_idx = np.argmax(dists)
         box_surface = horizontal_planes[box_idx]
-        box = self.calculate_box(box_surface, floor)
-        return box
+        dist = dists[box_idx] 
+        box = self.calculate_box(box_surface, dist)
+        return box_surface, box
 
         
 
