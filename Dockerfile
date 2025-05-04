@@ -12,8 +12,6 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     python3 -m pip install --no-cache-dir --upgrade open3d opencv-python
 
 WORKDIR /home
-
 COPY ./src /home/src
-COPY /data /home/data
     
-CMD ["bash"]
+CMD ["python3", "src/main.py"]

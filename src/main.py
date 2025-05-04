@@ -6,13 +6,16 @@ import os
 from Camera import Camera, CameraParameters
 from Scene import Scene, SceneMetaData
 from copy import deepcopy
+import json
 
 
 if __name__=="__main__":
 
-    print("Start box pose estimation")
+    print("-------Start box pose estimation------")
     dataset_folder = "/home/data/original"
-    results_folder = "/home/data/test"
+    results_folder = "/home/data/results"
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
 
     color_src = os.path.join(dataset_folder, "one-box.color.npdata.npy")
     depth_src = os.path.join(dataset_folder, "one-box.depth.npdata.npy")
@@ -20,18 +23,19 @@ if __name__=="__main__":
     intrinsic_src = os.path.join(dataset_folder, "intrinsics.npy")
     extrinsic_src = os.path.join(dataset_folder, "extrinsics.npy")
 
-    print("Read camera parameters")
+    print("--------Read camera parameters----------")
     camera_parameters = CameraParameters.read_parameters_from_src(intrinsic_src, extrinsic_src, color_src)
     camera = Camera(camera_parameters)
     scene_meta = SceneMetaData(pallet_height=0.12)
     scene = Scene(scene_meta)
     
-    print("Create a point cloud from RGB and depth")
+    print("--------Create a point cloud from RGB and depth--------")
     pcd = camera.get_pcd(color_src, depth_src)
     point_cloud_path = os.path.join(results_folder, "pcd.ply")
     o3d.io.write_point_cloud(point_cloud_path, pcd)   
     print(f"Save the point cloud in {point_cloud_path}")
 
+    print("-------Start Detection---------")
     print("Detect the Floor")
     floor = scene.get_floor(deepcopy(pcd))
     floor_path = os.path.join(results_folder, "floor.ply")
@@ -62,9 +66,14 @@ if __name__=="__main__":
     T_W_C = np.linalg.inv(camera_parameters.extrinisc)
 
     # the pose of the object relative to the camera frame
-    T = T_W_C @ T_B_W
-    R = T[:3, :3]
-    print("The pose of the object relative to the camera frame is:")
-    print(T)
+    pose = T_W_C @ T_B_W
+    R = pose[:3, :3]
+    print("--------The pose of the object relative to the camera frame----------")
+    print(pose)
     assert np.allclose(R.T @ R, np.eye(3), atol=1e-6)
+
+    pose_path = os.path.join(results_folder, "pose.json")
+    print(f"Save the pose in{pose_path}")
+    with open(pose_path, "w") as f:
+        json.dump(pose.tolist(), f)
 
