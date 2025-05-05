@@ -21,12 +21,13 @@ The objective is to detect the box dimensions and its pose using geometrical met
 3. Find the floor (plane with the maximum volume).
 4. Find all horizontal planes (planes parallel to the floor).
 5. Find the box surface (horizontal plane with the maximum distance to the floor).
-6. Given the floor, box surface, and pallet height, find the box dimensions.
+6. Calculate the box dimensions from the floor, box surface, and pallet height.
+7. Find the box pose relative to the camera frame.
 
 ### Assumptions
 
 1. The floor always dominates the scene.
-2. The box we interested to detect is always the closest horizontal surface to the camera.
+2. The box we are interested in detecting is always the closest horizontal surface to the camera.
 3. The pallet height is constant and known.
 
 ### How to run
@@ -56,7 +57,7 @@ docker run -v /absolute_path/to/box_pose_estimation/data:/home/data -it box_pose
 
 ---
 
-Output from the terminal. It 
+Output from the terminal.
 
 ```bash
 Start box pose estimation
