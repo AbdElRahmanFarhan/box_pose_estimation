@@ -40,14 +40,14 @@ The objective is to detect the box dimensions and its pose using geometrical met
 git clone https://github.com/AbdElRahmanFarhan/box_pose_estimation
 ```
 
-1. Build the docker image
+2. Build the docker image
 
 ```bash
 cd box_pose_estimation
 docker build . -t box_pose_img
 ```
 
-1. Run the container
+3. Run the container
 
 ```bash
 docker run -v /absolute_path/to/box_pose_estimation/data:/home/data -it box_pose_img
